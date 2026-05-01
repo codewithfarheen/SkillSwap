@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Skills</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="navbar">
+    <h2>SkillSwap</h2>
+    <div>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<h1 style="text-align:center;">My Skills</h1>
+
+<div class="skills-grid">
+    {% for skill in skills %}
+    <div class="skill-card">
+        <h3>{{ skill[2] }}</h3>
+        <p>{{ skill[3] }}</p>
+    </div>
+    {% endfor %}
+</div>
+<div class="particles"></div>
+
+<script>
+const container = document.querySelector('.particles');
+
+for (let i = 0; i < 40; i++) {
+    let span = document.createElement('span');
+
+    span.style.left = Math.random() * 100 + "vw";
+    span.style.animationDuration = (Math.random() * 5 + 5) + "s";
+    span.style.opacity = Math.random();
+
+    container.appendChild(span);
+}
+</script>
+</body>
+</html>

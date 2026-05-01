@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="navbar">
+    <h2>SkillSwap</h2>
+    <div>
+        <a href="/post-skill">Post</a>
+        <a href="/skills">Skills</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="center">
+    <div class="card">
+        <h2>Dashboard</h2>
+
+        <a href="/post-skill" class="btn">Post Skill</a>
+        <a href="/skills" class="btn">View Skills</a>
+    </div>
+</div>
+
+<div class="particles"></div>
+
+<script>
+const c = document.querySelector('.particles');
+for (let i = 0; i < 40; i++) {
+    let s = document.createElement('span');
+    s.style.left = Math.random()*100 + "vw";
+    s.style.animationDuration = (Math.random()*5+5)+"s";
+    c.appendChild(s);
+}
+</script>
+
+</body>
+</html>

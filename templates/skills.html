@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Explore Skills</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="skills-container">
+
+    <h1 class="title">Explore Skills</h1>
+
+    <div class="skills-grid">
+        {% for skill in skills %}
+        <div class="skill-card">
+
+            <h3>{{ skill[2] }}</h3>
+            <p>{{ skill[3] }}</p>
+
+            {% if skill[0] in requested %}
+                <button class="request-btn" disabled>Requested</button>
+            {% else %}
+                <form action="/request/{{ skill[0] }}" method="POST">
+                    <button type="submit" class="request-btn">Request Skill</button>
+                </form>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+</body>
+</html>
