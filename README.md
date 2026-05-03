@@ -80,7 +80,7 @@ http://127.0.0.1:5000
 
 ## 🌐 Live Demo
 
-(Will be added after deployment)
+https://skillswap-w9co.onrender.com
 
 ---
 
