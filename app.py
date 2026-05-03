@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, session, url_for
 import sqlite3
+import os
 
 app = Flask(__name__)
-app.secret_key = "secret123"  # needed for session
+app.secret_key = "secret123"
 
-# ---------------- DATABASE ----------------
+# ---------- DATABASE ----------
 def init_db():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
@@ -40,12 +41,12 @@ def init_db():
 
 init_db()
 
-# ---------------- HOME ----------------
+# ---------- HOME ----------
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# ---------------- SIGNUP ----------------
+# ---------- SIGNUP ----------
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -56,8 +57,10 @@ def signup():
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
 
-        cursor.execute("INSERT INTO users (name,email,password) VALUES (?,?,?)",
-                       (name,email,password))
+        cursor.execute(
+            "INSERT INTO users (name,email,password) VALUES (?,?,?)",
+            (name, email, password)
+        )
 
         conn.commit()
         conn.close()
@@ -66,8 +69,8 @@ def signup():
 
     return render_template('signup.html')
 
-# ---------------- LOGIN ----------------
-@app.route('/login', methods=['GET','POST'])
+# ---------- LOGIN ----------
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
 
@@ -78,35 +81,37 @@ def login():
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM users WHERE email=? AND password=?",
-                       (email,password))
+        cursor.execute(
+            "SELECT * FROM users WHERE email=? AND password=?",
+            (email, password)
+        )
         user = cursor.fetchone()
 
         conn.close()
 
         if user:
-            session['user_id'] = user[0]   # store user
+            session['user_id'] = user[0]
             return redirect('/dashboard')
         else:
-            error = "Invalid login"
+            error = "Invalid email or password"
 
     return render_template('login.html', error=error)
 
-# ---------------- LOGOUT ----------------
+# ---------- LOGOUT ----------
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/')
 
-# ---------------- DASHBOARD ----------------
+# ---------- DASHBOARD ----------
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
         return redirect('/login')
     return render_template('dashboard.html')
 
-# ---------------- POST SKILL ----------------
-@app.route('/post-skill', methods=['GET','POST'])
+# ---------- POST SKILL ----------
+@app.route('/post-skill', methods=['GET', 'POST'])
 def post_skill():
     if 'user_id' not in session:
         return redirect('/login')
@@ -118,8 +123,10 @@ def post_skill():
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
 
-        cursor.execute("INSERT INTO skills (user_id,title,description) VALUES (?,?,?)",
-                       (session['user_id'],title,description))
+        cursor.execute(
+            "INSERT INTO skills (user_id,title,description) VALUES (?,?,?)",
+            (session['user_id'], title, description)
+        )
 
         conn.commit()
         conn.close()
@@ -128,7 +135,7 @@ def post_skill():
 
     return render_template('post_skill.html')
 
-# ---------------- VIEW SKILLS ----------------
+# ---------- VIEW SKILLS ----------
 @app.route('/skills')
 def skills():
     if 'user_id' not in session:
@@ -140,16 +147,17 @@ def skills():
     cursor.execute("SELECT * FROM skills")
     skills = cursor.fetchall()
 
-    # get requested skills for current user
-    cursor.execute("SELECT skill_id FROM requests WHERE sender_id=?",
-                   (session['user_id'],))
+    cursor.execute(
+        "SELECT skill_id FROM requests WHERE sender_id=?",
+        (session['user_id'],)
+    )
     requested = [r[0] for r in cursor.fetchall()]
 
     conn.close()
 
     return render_template('skills.html', skills=skills, requested=requested)
 
-# ---------------- REQUEST SKILL ----------------
+# ---------- REQUEST SKILL ----------
 @app.route('/request/<int:skill_id>', methods=['POST'])
 def request_skill(skill_id):
     if 'user_id' not in session:
@@ -158,20 +166,23 @@ def request_skill(skill_id):
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
-    # check if already requested
-    cursor.execute("SELECT * FROM requests WHERE sender_id=? AND skill_id=?",
-                   (session['user_id'], skill_id))
-    already = cursor.fetchone()
+    cursor.execute(
+        "SELECT * FROM requests WHERE sender_id=? AND skill_id=?",
+        (session['user_id'], skill_id)
+    )
+    exists = cursor.fetchone()
 
-    if not already:
-        cursor.execute("INSERT INTO requests (sender_id, skill_id) VALUES (?,?)",
-                       (session['user_id'], skill_id))
+    if not exists:
+        cursor.execute(
+            "INSERT INTO requests (sender_id, skill_id) VALUES (?, ?)",
+            (session['user_id'], skill_id)
+        )
         conn.commit()
 
     conn.close()
 
     return redirect('/skills')
 
-# ---------------- RUN ----------------
-if __name__ == '__main__':
-    app.run(debug=True)
+# ---------- RUN ----------
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
