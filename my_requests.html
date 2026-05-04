@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Requests</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h2>My Requests</h2>
+
+        {% for r in requests %}
+            <p><b>{{ r[0] }}</b> requested <b>{{ r[1] }}</b></p>
+        {% endfor %}
+
+        <a href="/dashboard" class="btn-link">Back</a>
+    </div>
+</div>
+
+</body>
+</html>

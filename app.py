@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session
 import sqlite3
 import os
 
@@ -32,6 +32,7 @@ def init_db():
     CREATE TABLE IF NOT EXISTS requests (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         sender_id INTEGER,
+        receiver_id INTEGER,
         skill_id INTEGER
     )
     ''')
@@ -57,10 +58,8 @@ def signup():
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
 
-        cursor.execute(
-            "INSERT INTO users (name,email,password) VALUES (?,?,?)",
-            (name, email, password)
-        )
+        cursor.execute("INSERT INTO users (name,email,password) VALUES (?,?,?)",
+                       (name, email, password))
 
         conn.commit()
         conn.close()
@@ -81,10 +80,8 @@ def login():
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
 
-        cursor.execute(
-            "SELECT * FROM users WHERE email=? AND password=?",
-            (email, password)
-        )
+        cursor.execute("SELECT * FROM users WHERE email=? AND password=?",
+                       (email, password))
         user = cursor.fetchone()
 
         conn.close()
@@ -147,10 +144,9 @@ def skills():
     cursor.execute("SELECT * FROM skills")
     skills = cursor.fetchall()
 
-    cursor.execute(
-        "SELECT skill_id FROM requests WHERE sender_id=?",
-        (session['user_id'],)
-    )
+    # Already requested skills
+    cursor.execute("SELECT skill_id FROM requests WHERE sender_id=?",
+                   (session['user_id'],))
     requested = [r[0] for r in cursor.fetchall()]
 
     conn.close()
@@ -166,22 +162,52 @@ def request_skill(skill_id):
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT * FROM requests WHERE sender_id=? AND skill_id=?",
-        (session['user_id'], skill_id)
-    )
-    exists = cursor.fetchone()
+    # get skill owner
+    cursor.execute("SELECT user_id FROM skills WHERE id=?", (skill_id,))
+    owner = cursor.fetchone()
 
-    if not exists:
+    if owner:
+        receiver_id = owner[0]
+
+        # prevent duplicate request
         cursor.execute(
-            "INSERT INTO requests (sender_id, skill_id) VALUES (?, ?)",
+            "SELECT * FROM requests WHERE sender_id=? AND skill_id=?",
             (session['user_id'], skill_id)
         )
-        conn.commit()
+        exists = cursor.fetchone()
+
+        if not exists:
+            cursor.execute(
+                "INSERT INTO requests (sender_id,receiver_id,skill_id) VALUES (?,?,?)",
+                (session['user_id'], receiver_id, skill_id)
+            )
+            conn.commit()
 
     conn.close()
 
     return redirect('/skills')
+
+# ---------- MY REQUESTS ----------
+@app.route('/my-requests')
+def my_requests():
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        SELECT users.name, skills.title
+        FROM requests
+        JOIN users ON requests.sender_id = users.id
+        JOIN skills ON requests.skill_id = skills.id
+        WHERE requests.receiver_id = ?
+    ''', (session['user_id'],))
+
+    data = cursor.fetchall()
+    conn.close()
+
+    return render_template('my_requests.html', requests=data)
 
 # ---------- RUN ----------
 if __name__ == "__main__":

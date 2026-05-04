@@ -6,30 +6,58 @@
 </head>
 <body>
 
+<div class="particles"></div>
+
 <div class="skills-container">
 
     <h1 class="title">Explore Skills</h1>
 
+    <a href="/dashboard" class="back-btn">← Back to Dashboard</a>
+
     <div class="skills-grid">
+
         {% for skill in skills %}
         <div class="skill-card">
-
+            
             <h3>{{ skill[2] }}</h3>
             <p>{{ skill[3] }}</p>
 
-            {% if skill[0] in requested %}
-                <button class="request-btn" disabled>Requested</button>
-            {% else %}
-                <form action="/request/{{ skill[0] }}" method="POST">
-                    <button type="submit" class="request-btn">Request Skill</button>
-                </form>
-            {% endif %}
+            <!-- REQUEST FORM -->
+            <form method="POST" action="/request/{{ skill[0] }}">
+                
+                {% if skill[0] in requested %}
+                    <button disabled style="opacity:0.6; cursor:not-allowed;">
+                        Requested
+                    </button>
+                {% else %}
+                    <button type="submit">
+                        Request Skill
+                    </button>
+                {% endif %}
+
+            </form>
 
         </div>
         {% endfor %}
+
     </div>
 
 </div>
+
+<!-- PARTICLES SCRIPT -->
+<script>
+const particlesContainer = document.querySelector('.particles');
+
+for (let i = 0; i < 40; i++) {
+    let span = document.createElement('span');
+
+    span.style.left = Math.random() * 100 + "vw";
+    span.style.animationDuration = (Math.random() * 5 + 5) + "s";
+    span.style.opacity = Math.random();
+
+    particlesContainer.appendChild(span);
+}
+</script>
 
 </body>
 </html>
